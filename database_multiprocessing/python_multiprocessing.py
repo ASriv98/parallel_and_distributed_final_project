@@ -53,15 +53,24 @@ def pack_evaluation(q):
 	#print(bottom)
 	print(df2)
 
-	pack_expected_value = 0
+	while True:
+		pack_expected_value = 0
 
-	for card_type in probability_by_type:
-		print(df2[card_type][-1])	
-		card_cost = df2[card_type][-1]
-		card_probability = probability_by_type[card_type]
-		pack_expected_value += card_cost * card_probability
-	
-	print(pack_expected_value)
+		for card_type in probability_by_type:
+			#print(df2[card_type][-1])	
+			card_cost = df2[card_type][-1]
+			card_probability = probability_by_type[card_type]
+			pack_expected_value += card_cost * card_probability
+			print("Pack expected value is: ")
+			print(pack_expected_value)
+
+			if (pack_expected_value > cost_of_pack):
+				buy_pack = True
+				break
+
+		if buy_pack == True:
+			break
+
 	if (pack_expected_value > cost_of_pack):
 		q.put(1)
 
