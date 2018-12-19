@@ -116,6 +116,9 @@ def price_alert(q):
 def make_graphs(eval_q = None, image_q = None):
 	date_array = eval_q.get()
 	eval_array = eval_q.get()
+	common_array = eval_q.get()
+	uncommon_array = eval_q.get()
+	rare_array = eval_q.get()
 	
 	plt.xticks( rotation=25 )
 	# ax = plt.gca()
@@ -125,16 +128,64 @@ def make_graphs(eval_q = None, image_q = None):
 	plt.savefig('temp_graph.png')
 	graph = cv2.imread('temp_graph.png')
 	image_q.put(graph)
+	plt.clf()
+
+	plt.xticks( rotation=25 )
+	plt.plot_date(date_array, common_array, '-')
+	plt.savefig('temp_graph.png')
+	graph = cv2.imread('temp_graph.png')
+	image_q.put(graph)
+	plt.clf()
+
+	plt.xticks( rotation=25 )
+	plt.plot_date(date_array, uncommon_array, '-')
+	plt.savefig('temp_graph.png')
+	graph = cv2.imread('temp_graph.png')
+	image_q.put(graph)
+	plt.clf()
+	
+	plt.xticks( rotation=25 )
+	plt.plot_date(date_array, rare_array, '-')
+	plt.savefig('temp_graph.png')
+	graph = cv2.imread('temp_graph.png')
+	image_q.put(graph)
+	plt.clf()
+	
 	while True:
 		# Queue get commands are blocking so this wont be running forever
 		date_array = np.append(date_array, eval_q.get())
 		eval_array = np.append(eval_array, eval_q.get())
+		common_array = np.append(common_array, eval_q.get())
+		uncommon_array = np.append(uncommon_array, eval_q.get())
+		rare_array = np.append(rare_array, eval_q.get())
 
 		plt.xticks( rotation=25 )
 		plt.plot_date(date_array, eval_array, '-')
 		plt.savefig('temp_graph.png')
 		graph = cv2.imread('temp_graph.png')
 		image_q.put(graph)
+		plt.clf()
+
+		plt.xticks( rotation=25 )
+		plt.plot_date(date_array, common_array, '-')
+		plt.savefig('temp_graph.png')
+		graph = cv2.imread('temp_graph.png')
+		image_q.put(graph)
+		plt.clf()
+
+		plt.xticks( rotation=25 )
+		plt.plot_date(date_array, uncommon_array, '-')
+		plt.savefig('temp_graph.png')
+		graph = cv2.imread('temp_graph.png')
+		image_q.put(graph)
+		plt.clf()
+
+		plt.xticks( rotation=25 )
+		plt.plot_date(date_array, rare_array, '-')
+		plt.savefig('temp_graph.png')
+		graph = cv2.imread('temp_graph.png')
+		image_q.put(graph)
+		plt.clf()
 
 if __name__ == '__main__':
 
