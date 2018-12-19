@@ -12,6 +12,7 @@ import requests
 from collections import defaultdict
 from functools import reduce
 import sqlalchemy
+import datetime
 
 sys.setrecursionlimit(250000)
 
@@ -75,7 +76,9 @@ def parse_results_page(in_url, outlist, in_color, in_card_type):
             if entry == "asset_description":
                 market_hash = listing["asset_description"]["market_hash_name"]
                 rarity = listing["asset_description"]["type"]
-        outlist.append((datetime.datetime.now().strftime('%b %d %Y %H'), color_parsed, card_type_parsed, rarity, name, sell_price, market_hash))
+        outlist.append((datetime.datetime.now().strftime('%b %d %Y %H'), color_parsed, card_type_parsed, rarity, name,
+                        sell_price, market_hash))
+
 
 def init_SQL_engine(username, password):
     return sqlalchemy.create_engine("postgresql+psycopg2://{}:{}@artifact.ccysakewgsvk.us-east-1.rds.amazonaws.com:5432/CallToArms".format(username, password))
