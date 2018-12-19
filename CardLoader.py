@@ -75,8 +75,7 @@ def parse_results_page(in_url, outlist, in_color, in_card_type):
             if entry == "asset_description":
                 market_hash = listing["asset_description"]["market_hash_name"]
                 rarity = listing["asset_description"]["type"]
-        outlist.append((color_parsed, card_type_parsed, rarity, name, sell_price, market_hash))
-
+        outlist.append((datetime.datetime.now().strftime('%b %d %Y %H'), color_parsed, card_type_parsed, rarity, name, sell_price, market_hash))
 
 def init_SQL_engine(username, password):
     return sqlalchemy.create_engine("postgresql+psycopg2://{}:{}@artifact.ccysakewgsvk.us-east-1.rds.amazonaws.com:5432/CallToArms".format(username, password))
@@ -236,8 +235,6 @@ def hourly_update(SQL_username, SQL_password):
     for j in jobs:
         j.join()
 
-    colors = ["Black", "Blue", "Red", "Green", "Item"]
-    rarities = ["Common Card", "Uncommon Card", "Rare Card"]
     value_dict = {
         'Date': result_list[0][0],
         'BlueCommon': 0,
