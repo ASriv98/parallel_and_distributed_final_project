@@ -94,6 +94,10 @@ def pack_evaluation(price_alert_q = None, eval_q = None):
 
 	eval_q.put(date_array)
 	eval_q.put(expected_values)
+	eval_q.put(common_values)
+	eval_q.put(common_uncommon_values)
+	eval_q.put(common_uncommon_rare_values)
+
 
 	while True:
 		# Wait one hour before calculating next value
@@ -109,11 +113,25 @@ def pack_evaluation(price_alert_q = None, eval_q = None):
 			card_probability = probability_by_type[card_type]
 			pack_expected_value += card_cost * card_probability
 
+		common_value = 0
+		for card_type in common:
+			common_value += row[card_type]
+
+		common_uncommon_value = 0
+		for card_type in common_uncommon:
+			common_uncommon_value += row[card_type]
+
+		common_uncommon_rare_value = 0
+		for card_type in common_uncommon_rare:
+			common_uncommon_rare_value += row[card_type]
+
 		print("Pack EV is {}".format(pack_expected_value))
 		
-		eval_q.put(pack_expected_value)
 		eval_q.put(database_df["Date"])
-
+		eval_q.put(pack_expected_value)
+		eval_q.put(common_value)
+		eval_q.put(common_uncommon_value)
+		eval_q.put(common_uncommon_rare_value)
 		# Alerts subscribers to better pack value
 		if pack_expected_value > cost_of_pack and exists(price_alert_q):
 			price_alert_q.put(1)
@@ -142,42 +160,11 @@ def price_alert(q):
  	
 	
 def make_graphs(eval_q = None, image_q = None):
-	date_array = eval_q.get()
-	eval_array = eval_q.get()
-	common_array = eval_q.get()
-	uncommon_array = eval_q.get()
-	rare_array = eval_q.get()
-	
-	plt.xticks( rotation=25 )
-	# ax = plt.gca()
-	# xfmt = md.DateFormatter('%Y-%m-%d %H:%M:%S')
-	# ax.xaxis.set_major_formatter(xfmt)
-	plt.plot_date(date_array, eval_array, '-')
-	plt.savefig('temp_graph.png')
-	graph = cv2.imread('temp_graph.png')
-	image_q.put(graph)
-	plt.clf()
-
-	plt.xticks( rotation=25 )
-	plt.plot_date(date_array, common_array, '-')
-	plt.savefig('temp_graph.png')
-	graph = cv2.imread('temp_graph.png')
-	image_q.put(graph)
-	plt.clf()
-
-	plt.xticks( rotation=25 )
-	plt.plot_date(date_array, uncommon_array, '-')
-	plt.savefig('temp_graph.png')
-	graph = cv2.imread('temp_graph.png')
-	image_q.put(graph)
-	plt.clf()
-	
-	plt.xticks( rotation=25 )
-	plt.plot_date(date_array, rare_array, '-')
-	plt.savefig('temp_graph.png')
-	graph = cv2.imread('temp_graph.png')
-	image_q.put(graph)
-	plt.clf()
+	date_array = np.array([])
+	eval_array = np.array([])
+	common_array = np.array([])
+	uncommon_array = np.array([])
+	rare_array = np.array([])
 	
 	while True:
 		# Queue get commands are blocking so this wont be running forever
