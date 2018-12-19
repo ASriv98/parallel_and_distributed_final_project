@@ -290,6 +290,9 @@ def hourly_update(SQL_username, SQL_password):
 
 
 if __name__ == "__main__":
+    print("Starting Card Loader")
     while True:
-        time.sleep(3600)
+        print("Starting update")
         hourly_update("","")
+        print("Update finished, see you in an hour")
+        time.sleep(3600)
