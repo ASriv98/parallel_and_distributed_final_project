@@ -42,6 +42,9 @@ def pack_evaluation(price_alert_q = None, eval_q = None):
 	"ItemRare"		:	0.00813,
 	}
 
+	common = ["BlackCommon", "BlueCommon", "RedCommon", "GreenCommon"]
+	common_uncommon = ["BlackCommon", "BlackUncommon", "BlueCommon", "BlueUncommon", "RedCommon", "RedUncommon", "GreenCommon", "GreenUncommon"]
+	common_uncommon_rare = ["BlackCommon", "BlackUncommon", "BlackRare", "BlueCommon", "BlueUncommon", "BlueRare", "RedCommon", "RedUncommon", "RedRare", "GreenCommon", "GreenUncommon", "GreenRare"]
 
 	def init_SQL_engine(username, password):
 	    return sqlalchemy.create_engine("postgresql+psycopg2://{}:{}@artifact.ccysakewgsvk.us-east-1.rds.amazonaws.com:5432/CallToArms".format(username, password))
@@ -50,6 +53,31 @@ def pack_evaluation(price_alert_q = None, eval_q = None):
 
 	database_df = pd.read_sql_table("CalltoArms", engine,\
 						coerce_float=True, parse_dates="Date", columns=None, chunksize=None)
+
+	common_values = np.array([])
+	common_uncommon_values = np.array([])
+	common_uncommon_rare_values = np.array([])
+
+	for index, row in database_df.iterrows():
+		common_value = 0
+		for card_type in common:
+			common_value += row[card_type]
+		common_values = np.append(common_values, common_value)
+
+	for index, row in database_df.iterrows():
+		common_uncommon_value = 0
+		for card_type in common_uncommon:
+			common_uncommon_value += row[card_type]
+		common_uncommon_values = np.append(common_uncommon_values, common_uncommon_value)
+
+	for index, row in database_df.iterrows():
+		common_uncommon_rare_value = 0
+		for card_type in common_uncommon_rare:
+			common_uncommon_rare_value += row[card_type]
+		common_uncommon_rare_values = np.append(common_uncommon_rare_values, common_uncommon_rare)
+
+	print("DONE")
+	print(common_uncommon_values)
 
 	expected_values = np.array([])
 	date_array = np.array([])
@@ -186,6 +214,8 @@ def make_graphs(eval_q = None, image_q = None):
 		graph = cv2.imread('temp_graph.png')
 		image_q.put(graph)
 		plt.clf()
+
+
 
 if __name__ == '__main__':
 
