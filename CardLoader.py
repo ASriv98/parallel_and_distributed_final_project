@@ -231,7 +231,7 @@ def hourly_update(SQL_username, SQL_password):
 
     # # Start threads
     for j in jobs:
-        #     time.sleep(3)
+        time.sleep(5)
         j.start()
 
     # Ensure all of the threads have finished
