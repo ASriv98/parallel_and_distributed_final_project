@@ -6,6 +6,7 @@ import random
 import pandas as pd 
 import numpy as np 
 import matplotlib.pyplot as plt
+import sqlalchemy
 
 # This is another process: graphing
 # Function that takes column of dates and column of prices and plots them i guess title is another input xtick distance another input Save bool as input filename as input
@@ -15,7 +16,7 @@ import matplotlib.pyplot as plt
 # sentinel = -1
 
  
-def pack_evaluation(q=None):
+def pack_evaluation(price_alert_q = None, eval_q = None):
 	#current cost of packs are 2 USD
 	cost_of_pack = 200
 
@@ -40,58 +41,86 @@ def pack_evaluation(q=None):
 	}
 
 
-	#storing csv to a dataframe, should be the same thing for using a database from SQL queries
-	df = pd.read_csv("12-17-18.csv")
-	df2 = df.set_index("Date", drop = False)
-	top = df2.head(1)
-	#bottom = df2.values[-1].tolist()	
-	#print(bottom)
-	print(df2)
 
-	pack_expected_value = 0
-	for card_type in probability_by_type:
-		#print(df2[card_type][-1])	
-		card_cost = df2[card_type][-1]
-		card_probability = probability_by_type[card_type]
-		pack_expected_value += card_cost * card_probability
+	def init_SQL_engine(username, password):
+	    return sqlalchemy.create_engine("postgresql+psycopg2://{}:{}@artifact.ccysakewgsvk.us-east-1.rds.amazonaws.com:5432/CallToArms".format(username, password))
 
-	print("Pack EV is {}".format(pack_expected_value))
-	
-	if pack_expected_value > cost_of_pack and exists(q):
-		q.put(1)
+	engine = init_SQL_engine("bbrucee", "parallel")
 
-def price_alert(q):
+	database_df = pd.read_sql_table("CalltoArms", engine, index_col="Date",\
+						coerce_float=True, parse_dates="Date", columns=None, chunksize=None)
+
+	expected_values = np.array([])
+	for index, row in database_df.iterrows():
+		pack_expected_value = 0
+		for card_type in probability_by_type:
+
+			card_cost = row[card_type]
+			card_probability = probability_by_type[card_type]
+			pack_expected_value += card_cost * card_probability
+		expected_values =  np.append(expected_values, pack_expected_value)
+	eval_q.put(expected_values)
 
 	while True:
-		if (q.get() == 1):
-			print("found a possible match")
-			break
+		# Wait one hour before calculating next value
+		time.sleep(60*60)
 
-	print("in price alert")
-	account_sid = 'AC911ff4517adb89e91404efcc33869bab'
-	auth_token = '450bd8ddafdbf5d90572729356373130'
-	client = Client(account_sid, auth_token)
+		database_df = pd.read_sql_table("CalltoArms", engine, index_col="Date",\
+						coerce_float=True, parse_dates="Date", columns=None, chunksize=None)
 
-	message = client.messages \
-			    .create(
-			         body='You should purchase a card.',
-			         from_='+13612098328',
-			         to='+17324849120'
-				     )
+		pack_expected_value = 0
+		for card_type in probability_by_type:
 
-	print(message.sid)
-	print(sentinel)
+			card_cost = df2[card_type][-1]
+			card_probability = probability_by_type[card_type]
+			pack_expected_value += card_cost * card_probability
+
+		print("Pack EV is {}".format(pack_expected_value))
+		
+		eval_q.put(pack_expected_value)
+
+		# Alerts subscribers to better pack value
+		if pack_expected_value > cost_of_pack and exists(price_alert_q):
+			price_alert_q.put(1)
+
+def price_alert(q):
+	while True:
+
+		while True:
+			if (q.get() == 1):
+				print("found a possible match")
+				break
+
+		print("in price alert")
+		account_sid = 'AC911ff4517adb89e91404efcc33869bab'
+		auth_token = '450bd8ddafdbf5d90572729356373130'
+		client = Client(account_sid, auth_token)
+
+		message = client.messages \
+				    .create(
+				         body='You should purchase a card.',
+				         from_='+13612098328',
+				         to='+17324849120'
+					     )
+
+		print(message.sid)
+		print(sentinel)
  	
 	
-def temp_csv_scrub():
-	df = pd.read_csv("12-17-18.csv")
-	return(df['Date'], df['BlueCommon'])
+def make_graphs(image_q):
+	while True:
+		pass
 
 if __name__ == '__main__':
-	
-	q = Queue()
-	p = Process(target=pack_evaluation, args=(q,))
-	p2 = Process(target=price_alert, args=(q,))
+
+	# Queue used to update tell the price alert to send a text
+	price_alert_q = Queue()
+	# Queue to send data to the website
+	image_q = Queue()
+	eval_q = Queue()
+
+	p = Process(target=pack_evaluation, args=(price_alert_q, eval_q, ))
+	p2 = Process(target=price_alert, args=(price_alert_q, ))
 	print("start")
 	p.start()
 	p2.start()
