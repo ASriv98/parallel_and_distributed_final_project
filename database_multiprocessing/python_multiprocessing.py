@@ -74,10 +74,9 @@ def pack_evaluation(price_alert_q = None, eval_q = None):
 		common_uncommon_rare_value = 0
 		for card_type in common_uncommon_rare:
 			common_uncommon_rare_value += row[card_type]
-		common_uncommon_rare_values = np.append(common_uncommon_rare_values, common_uncommon_rare)
+		common_uncommon_rare_values = np.append(common_uncommon_rare_values, common_uncommon_rare_value)
 
 	print("DONE")
-	print(common_uncommon_values)
 
 	expected_values = np.array([])
 	date_array = np.array([])
@@ -174,6 +173,12 @@ def make_graphs(eval_q = None, image_q = None):
 		uncommon_array = np.append(uncommon_array, eval_q.get())
 		rare_array = np.append(rare_array, eval_q.get())
 
+		print(date_array.shape)
+		print(eval_array.shape)
+		print(common_array.shape)
+		print(uncommon_array.shape)
+		print(rare_array.shape)
+
 		plt.xticks( rotation=25 )
 		plt.plot_date(date_array, eval_array, '-')
 		plt.savefig('temp_graph.png')
@@ -209,8 +214,8 @@ if __name__ == '__main__':
 	# Queue used to update tell the price alert to send a text
 	price_alert_q = Queue()
 	# Queue to send data to the website
-	image_q = Queue()
 	eval_q = Queue()
+	image_q = Queue()
 
 	p_eval = Process(target=pack_evaluation, args=(price_alert_q, eval_q, ))
 	p_alert = Process(target=price_alert, args=(price_alert_q, ))
@@ -220,6 +225,7 @@ if __name__ == '__main__':
 
 	p_eval.start()
 	p_graph.start()
+
 
 	p_eval.join()
 	p_graph.join()
