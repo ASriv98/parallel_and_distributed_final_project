@@ -12,44 +12,7 @@ import matplotlib.pyplot as plt
 # Threads store function call/args with above
 # SQL queries to make threads
 
-sentinel = -1
- 
-def make_graphs(title, column_of_prices, column_of_dates):
-
-	print(column_of_dates)
-	print(column_of_prices)	
-
-	plt.scatter(column_of_dates,column_of_prices,  alpha = 0.5)
-	plt.title(title)
-
-def read_df():
-	df = pd.read_csv("12-17-18.csv")
-	return df
-
-	
-
-
-def sequential_data_scrub():
-
-
-
-def parallel_data_scrub(df, func):
-
-	df = read_df();
-	num_partitions = 10
-	num_cores = 4 
-
-	df_split = np.array_split(df, num_partitions)
-	pool = Pool(num_cores)
-	df = pd.concat(pool.map(func, df_split))
-	pool.close()
-	pool.join()
-
-	return df
-
-
-
-
+# sentinel = -1
 
  
 def pack_evaluation(q=None):
@@ -125,16 +88,7 @@ def temp_csv_scrub():
 	return(df['Date'], df['BlueCommon'])
 
 if __name__ == '__main__':
-
-	date_list, blue_common_list = temp_csv_scrub()
-	date_list = list(date_list)
-	blue_common_list = list(blue_common_list)
-
-
-
-	make_graphs("Title", date_list, blue_common_list)
-
-
+	
 	q = Queue()
 	p = Process(target=pack_evaluation, args=(q,))
 	p2 = Process(target=price_alert, args=(q,))
